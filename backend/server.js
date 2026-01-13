@@ -1,5 +1,8 @@
 import express from 'express'
 import colors from 'colors'
+import connectDB from './config/db.js';
+//mongodb Coneection
+connectDB();
 
 const app = express();
 app.get('/',(req,res)=>{
