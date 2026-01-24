@@ -5,4 +5,8 @@ const encryptPassword = async (password) => {
   const hashedPassword = await bcrypt.hash(password, saltRounds)
   return hashedPassword
 }
-export default encryptPassword;
+const verifyPassword = async (password, hashedPassword) => {
+  const isMatch = await bcrypt.compare(password, hashedPassword)
+  return isMatch
+}
+export { encryptPassword, verifyPassword };

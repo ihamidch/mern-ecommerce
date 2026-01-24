@@ -1,27 +1,26 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./Auth.css";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const RegisterPage = () => {
-  // Initialize state with all fields
   const [input, setInput] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInput({ ...input, [name]: value });
   };
 
-  // Handle form submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    axios
-      .post(
+    try {
+      const response = await axios.post(
         "http://localhost:5000/api/v1/users/register",
         input,
         {
@@ -29,16 +28,27 @@ const RegisterPage = () => {
             "Content-Type": "application/json",
           },
         }
-      )
-      .then((response) => {
-        console.log("Registration successful:", response.data);
-        alert("Registration Successful!");
-        
-      })
-      .catch((error) => {
-        console.error("There was an error registering!", error);
-        alert("Registration Failed! Check console.");
+      );
+
+      // ✅ SUCCESS → clear form
+      toast.success(response?.data?.message ?? "Registration successful", {autoClose: 2000});
+
+      setInput({
+        name: "",
+        email: "",
+        password: "",
       });
+    } catch (error) {
+      // ❌ ERROR → DO NOT clear form
+      toast.error(
+        error?.response?.data?.message ?? "User already exists", {autoClose: 2000}
+      );
+      setInput({
+        name: "",
+        email: "",
+        password: "",
+      });
+    }
   };
 
   return (
@@ -96,9 +106,9 @@ const RegisterPage = () => {
 
               <div className="text-center mt-4">
                 <span className="text-muted">Already have an account?</span>
-                <a href="/login" className="auth-link ms-1">
+                <Link to="/login" className="auth-link ms-1">
                   Login
-                </a>
+                </Link>
               </div>
             </div>
           </div>

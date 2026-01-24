@@ -1,7 +1,55 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Auth.css";
-
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 const Login = () => {
+   const [input, setInput] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setInput({ ...input, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/users/login",
+        input,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // ✅ SUCCESS → clear form
+      toast.success(response?.data?.message ?? "Registration successful", {autoClose: 2000});
+
+      setInput({
+        name: "",
+        email: "",
+        password: "",
+      });
+    } catch (error) {
+      // ❌ ERROR → DO NOT clear form
+      toast.error(
+        error?.response?.data?.message ?? "User already exists", {autoClose: 2000}
+      );
+      setInput({
+        name: "",
+        email: "",
+        password: "",
+      });
+    }
+  };
+
   return (
     <section className="auth-section">
       <div className="container">
@@ -13,13 +61,16 @@ const Login = () => {
                 Login to continue shopping
               </p>
 
-              <form >
+              <form onSubmit={handleSubmit} >
                 <div className="mb-3">
                   <label className="form-label">Email Address</label>
                   <input
                     type="email"
                     className="form-control"
                     placeholder="Enter your email"
+                       name="email"
+                    value={input.email}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -29,6 +80,9 @@ const Login = () => {
                     type="password"
                     className="form-control"
                     placeholder="Enter your password"
+                      name="password"
+                    value={input.password}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -41,9 +95,9 @@ const Login = () => {
                 <span className="text-muted">
                   Don’t have an account?
                 </span>
-                <a href="/signup" className="auth-link ms-1">
+                <Link to="/register" className="auth-link ms-1">
                   Sign Up
-                </a>
+                </Link>
               </div>
             </div>
           </div>
