@@ -1,0 +1,50 @@
+name: Deploy ShopWave MERN App to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup SSH
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      # 3️⃣ Copy all project files to EC2
+      - name: Copy project to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "mkdir -p ~/shopwave"
+          scp -o StrictHostKeyChecking=no -r ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }}:~/shopwave
+
+      # 4️⃣ Deploy Backend
+      - name: Deploy Backend
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          cd ~/shopwave/backend &&
+          export MONGO_URI='${{ secrets.MONGO_URI }}' &&
+          export PORT='${{ secrets.PORT }}' &&
+          export JWT_SECRET='${{ secrets.JWT_SECRET }}' &&
+          export JWT_EXPIRES_IN='${{ secrets.JWT_EXPIRES_IN }}' &&
+          npm install &&
+          pm2 stop shopwave-backend || true &&
+          pm2 start index.js --name shopwave-backend
+          "
+
+      # 5️⃣ Build Frontend
+      - name: Build Frontend
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          cd ~/shopwave/frontend &&
+          npm install &&
+          npm run build
+          "
