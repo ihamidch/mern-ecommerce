@@ -1,6 +1,5 @@
 name: Deploy ShopWave MERN App to EC2
 
-# Trigger workflow when you push to main
 on:
   push:
     branches:
@@ -11,23 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the repository
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
       # 2️⃣ Setup SSH agent with private key
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.2
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      # 3️⃣ Copy all project files to EC2
+      # 3️⃣ Copy project files to EC2
       - name: Copy project to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "mkdir -p ~/shopwave"
           scp -o StrictHostKeyChecking=no -r ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }}:~/shopwave
 
-      # 4️⃣ Install backend dependencies & start backend
+      # 4️⃣ Deploy backend
       - name: Deploy Backend
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
@@ -41,7 +40,7 @@ jobs:
           pm2 start index.js --name shopwave-backend
           "
 
-      # 5️⃣ Install frontend dependencies & build React app
+      # 5️⃣ Build frontend
       - name: Build Frontend
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
